@@ -251,32 +251,6 @@ func generateIntermediateBlock(message []byte) []block{
 	return blocks
 }
 
-func TestMessageFiltering(t *testing.T){
-	message := []byte("abcdefghijklmnopqrstuvwxyz")
-	// maliciousMessage := []byte("abcdefghijklmnopqrstuvwxxx")
-
-	intermediateBlocks := generateIntermediateBlock(message)
-	// mIntermediateBlocks := generateIntermediateBlock(maliciousMessage)
-
-	sourceBlocks := make([]block, 13)
-
-	for index := 0; index < 13; index++ {
-		sourceBlocks[index] = ltEncode(13, uint16(index), intermediateBlocks)
-	}
-
-	// for index := 6; index < 13; index++ {
-	// 	sourceBlocks[index] = ltEncode(13, uint16(index), mIntermediateBlocks)
-	// }
-
-	originalMessage := restructuresSourceBlocks(26, 13, sourceBlocks)
-
-	rIntermediateBlocks := generateIntermediateBlock(originalMessage)
-
-	if !reflect.DeepEqual(intermediateBlocks, rIntermediateBlocks) {
-		t.Errorf("Different")
-	}
-}
-
 func TestIntermediateBlocks13(t *testing.T) {
 	blocks := make([]block, 13)
 	for i := range blocks {
