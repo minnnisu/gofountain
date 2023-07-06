@@ -15,7 +15,6 @@
 package fountain
 
 import (
-	"fmt"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -226,29 +225,8 @@ func TestSystematicRaptorCode(t *testing.T) {
 		if !reflect.DeepEqual(b.data, sourceCopy[testIndex].data) {
 			t.Errorf("LT encoding of CodeBlock=%d was (%v), should be the %d'th source block (%v)",
 				testIndex, b.data, testIndex, sourceCopy[testIndex].data)
+		}
 	}
-	}
-}
-
-func restructuresSourceBlocks(messageLenth int, k int, blocks []block) []byte{
-	lenLong, lenShort, numLong, numShort := partition(messageLenth, k)
-	message := make([]byte, 13)
-	message = message[0:0]
-	for i := 0; i < numLong; i++ {
-		message = append(message, blocks[i].data[0:lenLong]...)
-	}
-	for i := numLong; i < numLong+numShort; i++ {
-		message = append(message, blocks[i].data[0:lenShort]...)
-	}
-
-	return message
-}
-
-func generateIntermediateBlock(message []byte) []block{
-	c := NewRaptorCodec(13, 2)
-	blocks := c.GenerateIntermediateBlocks(message, c.SourceBlocks())
-
-	return blocks
 }
 
 func TestIntermediateBlocks13(t *testing.T) {
@@ -341,51 +319,5 @@ func TestRaptorCodec(t *testing.T) {
 		if !reflect.DeepEqual(message, out) {
 			t.Errorf("Decoding result must equal %s, got %s", string(message), string(out))
 		}
-	}
-}
-
-func Encode(message []byte, e int, c Codec) []LTBlock{
-	ids := make([]int64, e)
-	random := rand.New(rand.NewSource(8923489))
-	for i := range ids {
-		ids[i] = int64(random.Intn(60000))
-	}
-	codeBlocks := EncodeLTBlocks(message, ids, c)
-
-	return codeBlocks
-}
-
-func TestMesssageFilteringByRaptorCodec(t *testing.T) {
-	c := NewRaptorCodec(13, 2)
-	message := []byte("abcdefghijklmnopqrstuvwxyz")
-	maliciousMessage := []byte("hajkfjlajfjlskfjlwkfj")
-
-	messageCopy := make([]byte, len(message))
-	copy(messageCopy, message)
-
-	maliciousMessageCopy := make([]byte, len(message))
-	copy(maliciousMessageCopy, maliciousMessage)
-
-	codeBlocks := Encode(messageCopy, 20, c)
-	maliciousCodeBlocks := Encode(maliciousMessageCopy, 20, c)
-
-
-	t.Log("DECODE--------")
-	decoder := newRaptorDecoder(c.(*raptorCodec), len(message))
-
-	i := 0
-	for i < 20 {
-		fmt.Println(decoder.AddBlocks([]LTBlock{codeBlocks[i]}))
-		fmt.Println(decoder.AddBlocks([]LTBlock{maliciousCodeBlocks[i+1]}))
-		i = i + 2
-	}
-
-	if decoder.matrix.determined() {
-		t.Log("Recovered:\n", decoder.matrix.v)
-		decoder.Decode()
-		// out := decoder.Decode()
-		// if !reflect.DeepEqual(message, out) {
-		// 	t.Errorf("Decoding result must equal %s, got %s", string(message), string(out))
-		// }
 	}
 }
